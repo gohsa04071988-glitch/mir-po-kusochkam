@@ -1,43 +1,40 @@
-// Мир по кусочкам — офлайн-кэш v2.1
-// После первого открытия игра работает без интернета.
-const CACHE = 'mpk-v2-1';
-const FILES = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-maskable-512.png',
-];
+const CACHE_NAME = 'mir-po-kusochkam-v2.4';
+const ASSETS = ['./', './index.html', './manifest.webmanifest'];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())
+// 1. Установка нового Service Worker и мгновенная активация
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
+// 2. Автоматическая очистка всех старых версий кэша (v2.1 и др.)
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then((hit) => {
-      if (hit) return hit;
-      return fetch(e.request)
-        .then((resp) => {
-          if (resp.ok && new URL(e.request.url).origin === self.location.origin) {
-            const copy = resp.clone();
-            caches.open(CACHE).then((c) => c.put(e.request, copy));
-          }
-          return resp;
-        })
-        .catch(() => caches.match('./'));
-    })
+// 3. Стратегия "Сначала свежая версия из сети, кэш — только для офлайна"
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then((networkResponse) => {
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
+        return networkResponse;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
