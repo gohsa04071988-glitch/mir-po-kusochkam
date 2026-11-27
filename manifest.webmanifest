@@ -1,0 +1,17 @@
+{
+  "name": "Мир по кусочкам",
+  "short_name": "Пазлы",
+  "description": "Детские пазлы: 8 миров, 56 картинок, 168 наклеек и книга историй.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#bae6fd",
+  "theme_color": "#38bdf8",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
